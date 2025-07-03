@@ -53,6 +53,7 @@ class MemberRequestController extends Controller
             'jabatan' => $request->jabatan,
             'status' => $request->status,
             'reason' => $request->reason,
+            'slip_gaji_path' => $request->slip_gaji_path,
             'interview_sent_at' => $request->interview_sent_at,
             'interview_completed' => $request->interview_completed,
             'salary' => $request->salary,
@@ -60,6 +61,16 @@ class MemberRequestController extends Controller
             'updated_at' => $request->updated_at,
         ]);
     }
+public function showSlip($filename)
+{
+    $path = storage_path('app/public/slip_gaji/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path);
+}
 
     // Mengirim notifikasi interview dan ubah status
     public function sendInterview($id)

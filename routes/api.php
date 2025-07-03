@@ -21,8 +21,8 @@ use Illuminate\Http\Request; // Make sure to import Request
 use App\Models\Admin; // Import the Admin model
 use App\Models\Member; // Import the Member model
 
- Route::get('admin/summary', [AdminSummaryController::class, 'index']);
 Route::prefix('admin')->group(function () {
+Route::get('admin/dashboard', [AdminSummaryController::class, 'index']);
 Route::post('send-otp', [AdminAuthController::class, 'sendOtp']);
 Route::post('login', [AdminAuthController::class, 'login']);
 });

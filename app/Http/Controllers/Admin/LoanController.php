@@ -64,7 +64,7 @@ public function approve(Request $request, $id)
                 Storage::delete($loan->disbursement_proof);
             }
 
-            $path = $request->file('proof')->store('disbursement_proofs');
+            $path = $request->file('proof')->store('disbursement_proof');
             $loan->disbursement_proof = $path;
         }
 

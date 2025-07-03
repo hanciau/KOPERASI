@@ -21,7 +21,7 @@ class LoanApplication extends Model
         'interview_scheduled_at',
         'approved_at',
         'rejected_at',
-        'transfer_proof',
+        'disbursement_proofs',
     ];
 
     public function member()

@@ -52,7 +52,7 @@ class ProfitController extends Controller
         $distribution->save();
 
         return response()->json([
-            'message' => 'Permintaan pencairan telah diterima. Silakan datang ke koperasi sebelum 5 Januari.'
+            'message' => 'Permintaan pencairan telah diterima. Silakan datang ke koperasi sebelum 6 Januari.'
         ]);
     }
 
