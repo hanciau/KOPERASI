@@ -171,7 +171,8 @@ public function register(MemberRegistrationRequest $request): JsonResponse
 
         if ($request->hasFile('slip_gaji_file')) {
             $filePath = $request->file('slip_gaji_file')->store('slip_gaji', 'public');
-            $data['slip_gaji_path'] = $filePath;
+            $filepathreal = asset("https://ta.sunnysideup.my.id/storage/app/public/{$filePath}");
+            $data['slip_gaji_path'] = $filepathreal;
         } else {
             return response()->json([
                 'message' => 'File slip gaji wajib diunggah.'

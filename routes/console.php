@@ -16,6 +16,7 @@ use App\Models\{
     LoanApplication
 };
 use App\Mail\InterviewExpiredNotification;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,10 +58,10 @@ Schedule::call(function () {
     $fileName = "laporan_member_{$bulan}.pdf";
     $filePath = "app_reports/{$fileName}";
 
-    Storage::put($filePath, $pdf->output());
-
+    Storage::disk('public')->put($filePath, $pdf->output());
+    $rawUrlPath = "https://ta.sunnysideup.my.id/storage/app/public/{$filePath}";
     AppReport::create([
-        'file_path' => $filePath,
+        'file_path' => $rawUrlPath,
         'bulan' => $bulan,
         'description' => "Laporan member aktif bulan $bulan",
     ]);
@@ -101,9 +102,9 @@ Schedule::call(function () {
         $installment = LoanInstallment::whereHas('loanApplication', function ($q) use ($member) {
             $q->where('member_id', $member->id);
         })
-        ->where('status', 'unpaid')
-        ->orderBy('due_date', 'asc')
-        ->first();
+            ->where('status', 'unpaid')
+            ->orderBy('due_date', 'asc')
+            ->first();
 
         if ($installment && $member->salary >= $installment->amount) {
             $installment->update([
@@ -149,47 +150,62 @@ Schedule::call(function () {
  * [6] Laporan Cicilan Terdekat - Tanggal 25
  */
 Schedule::call(function () {
-    $bulan = now()->month;
-    $members = Member::where('status', 'active')->get();
-    $data = [];
+    try {
+        $bulan = now()->month;
+        $members = Member::where('status', 'active')->get();
+        $data = [];
 
-    foreach ($members as $member) {
-        $installment = LoanInstallment::whereHas('loanApplication', function ($q) use ($member) {
-            $q->where('member_id', $member->id);
-        })
-        ->where('status', 'unpaid')
-        ->orderBy('due_date', 'asc')
-        ->first();
+        foreach ($members as $member) {
+            $installment = LoanInstallment::whereHas('loanApplication', function ($q) use ($member) {
+                $q->where('member_id', $member->id);
+            })
+                ->where('status', 'unpaid')
+                ->orderBy('due_date', 'asc')
+                ->first();
 
-        if ($installment) {
-            $data[] = [
-                'bulan' => $bulan,
-                'member_name' => $member->name,
-                'member_email' => $member->email,
-                'loan_id' => $installment->loan_application_id,
-                'installment_id' => $installment->id,
-                'due_date' => $installment->due_date->format('Y-m-d'),
-                'amount' => number_format($installment->amount, 0, ',', '.'),
-                'status' => $installment->status,
-            ];
+            if ($installment) {
+                $data[] = [
+                    'bulan' => $bulan,
+                    'member_name' => $member->name,
+                    'member_email' => $member->email,
+                    'loan_id' => $installment->loan_application_id,
+                    'installment_id' => $installment->id,
+                    'due_date' => Carbon::parse($installment->due_date)->format('Y-m-d'),
+                    'amount' => number_format($installment->amount, 0, ',', '.'),
+                    'status' => $installment->status,
+                ];
+            }
         }
-    }
 
-    $html = view('exports.unpaid_installments_pdf', ['data' => $data])->render();
-    $pdf = Pdf::loadHTML($html);
-    $fileName = "laporan_cicilan_terdekat_{$bulan}.pdf";
-    $filePath = "app_reports/{$fileName}";
+        Log::info("🔍 Jumlah cicilan yang akan diproses: " . count($data));
 
-    Storage::put($filePath, $pdf->output());
+        $html = view('exports.unpaid_installments_pdf', ['data' => $data])->render();
+        $pdf = Pdf::loadHTML($html);
+        $fileName = "laporan_cicilan_terdekat_{$bulan}.pdf";
+        $filePath = "app_reports/{$fileName}";
 
+        $success = Storage::disk('public')->put($filePath, $pdf->output());
+
+        if (!$success) {
+            Log::error("❌ Gagal menyimpan file PDF ke storage: {$filePath}");
+            return;
+        }
+
+        $publicUrl = asset("storage/{$filePath}"); // agar bisa diakses dari URL publik
+
+    Storage::disk('public')->put($filePath, $pdf->output());
+    $rawUrlPath = "https://ta.sunnysideup.my.id/storage/app/public/{$filePath}";
     AppReport::create([
-        'file_path' => $filePath,
-        'bulan' => $bulan,
-        'description' => "Laporan cicilan belum dibayar bulan $bulan",
-    ]);
+        'file_path' => $rawUrlPath,
+            'bulan' => $bulan,
+            'description' => "Laporan cicilan belum dibayar bulan $bulan",
+        ]);
 
-    Log::info("📄 Laporan cicilan terdekat berhasil dibuat.");
-})->monthlyOn(25, '00:01');
+        Log::info("✅ Laporan cicilan berhasil dibuat dan disimpan ke database: {$publicUrl}");
+    } catch (\Throwable $e) {
+        Log::error("❌ Error saat generate laporan cicilan: " . $e->getMessage());
+    }
+});
 
 /**
  * [7] Laporan Tahunan Simpanan Member - Setiap 25 Desember
@@ -221,10 +237,10 @@ Schedule::call(function () {
     $fileName = "laporan_simpanan_member_tahunan_{$tahun}.pdf";
     $filePath = "app_reports/{$fileName}";
 
-    Storage::put($filePath, $pdf->output());
-
+    Storage::disk('public')->put($filePath, $pdf->output());
+    $rawUrlPath = "https://ta.sunnysideup.my.id/storage/app/public/{$filePath}";
     AppReport::create([
-        'file_path' => $filePath,
+        'file_path' => $rawUrlPath,
         'bulan' => 12,
         'description' => "Laporan Tahunan Simpanan Member Tahun $tahun",
     ]);

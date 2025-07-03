@@ -63,11 +63,7 @@ class MemberRequestController extends Controller
     }
 public function showSlip($filename)
 {
-    $path = storage_path('app/public/slip_gaji/' . $filename);
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
+    $path =$filename;
 
     return response()->file($path);
 }

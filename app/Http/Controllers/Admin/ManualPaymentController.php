@@ -35,15 +35,15 @@ class ManualPaymentController extends Controller
             return response()->json(['error' => 'Pembayaran ini sudah diproses.'], 422);
         }
 
-        $adminProofPath = $request->file('admin_proof')->store('admin_mutations');
-
-        DB::transaction(function () use ($payment, $data, $adminProofPath) {
+        $adminProofPath = $request->file('admin_proof')->store('admin_mutations', 'public');
+    $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$adminProofPath}");
+        DB::transaction(function () use ($payment, $data, $url) {
             foreach ($payment->installments as $installment) {
                 $installment->update([
                     'status' => 'paid',
                     'paid_at' => Carbon::now(),
                     'admin_note' => $data['admin_note'] ?? null,
-                    'payment_proof' => $adminProofPath,
+                    'payment_proof' => $url,
                 ]);
             }
 

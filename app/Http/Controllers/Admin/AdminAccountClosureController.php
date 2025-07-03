@@ -23,12 +23,12 @@ class AdminAccountClosureController extends Controller
             'handover_proof' => 'required|image|max:2048',
         ]);
 
-        $path = $request->file('handover_proof')->store('handover_proofs');
-
+        $path = $request->file('handover_proof')->store('handover_proofs', 'public');
+    $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$path}");
         $closure->update([
             'status' => 'approved',
             'admin_reason' => $data['admin_reason'],
-            'handover_proof' => $path,
+            'handover_proof' => $url,
             'final_balance' => $closure->member->current_balance,
             'approved_at' => now(),
         ]);

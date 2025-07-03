@@ -30,13 +30,13 @@ public function store(Request $request)
     ]);
 
     // Simpan file
-    $path = $request->file('slip_file')->store('salary_slips');
-
+    $path = $request->file('slip_file')->store('salary_slips', 'public');
+    $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$path}");
     // Simpan pengajuan
     \App\Models\SalaryUpdateRequest::create([
         'member_id' => $member->id,
         'new_salary' => $data['new_salary'],
-        'slip_file' => $path,
+        'slip_file' => $url,
         'status' => 'pending', // pastikan ada kolom status di tabel
     ]);
 

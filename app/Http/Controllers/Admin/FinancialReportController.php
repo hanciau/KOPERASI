@@ -28,10 +28,11 @@ public function store(Request $request)
 
     // Simpan ke storage/app/public/financial_reports
     $path = $request->file('file')->store('financial_reports', 'public');
+    $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$path}");
 
     $report = FinancialReport::create([
         'year' => $data['year'],
-        'file_path' => $path, // Simpan path relatif dari folder 'public'
+        'file_path' => $url , // Simpan path relatif dari folder 'public'
         'total_income' => $data['total_income'],
         'description' => $data['description'] ?? null,
     ]);
@@ -67,8 +68,10 @@ public function store(Request $request)
                 Storage::delete($report->file_path);
             }
 
-            $path = $request->file('file')->store('financial_reports');
-            $report->file_path = $path;
+            $path = $request->file('file')->store('financial_reports', 'public');
+            $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$path}");
+
+            $report->file_path = $url;
         }
 
         $report->total_income = $data['total_income'];
@@ -116,10 +119,6 @@ public function store(Request $request)
     {
         $report = FinancialReport::findOrFail($id);
 
-        if (!$report->file_path || !Storage::exists($report->file_path)) {
-            return response()->json(['error' => 'File tidak ditemukan.'], 404);
-        }
-
-        return Storage::download($report->file_path);
+        return $report->file_path;
     }
 }

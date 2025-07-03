@@ -28,7 +28,7 @@ class ProfitController extends Controller
                 'year' => $report->year,
                 'description' => $report->description,
                 'total_income' => $report->total_income,
-                'file_url' => $report->file_path ? asset('storage/' . $report->file_path) : null,
+                'file_url' => $report->file_path ? asset($report->file_path) : null,
                 'status' => $distribution ? $distribution->status : 'not_assigned',
                 'amount' => $distribution ? $distribution->amount : 0,
             ];

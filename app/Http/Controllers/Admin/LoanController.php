@@ -64,8 +64,9 @@ public function approve(Request $request, $id)
                 Storage::delete($loan->disbursement_proof);
             }
 
-            $path = $request->file('proof')->store('disbursement_proof');
-            $loan->disbursement_proof = $path;
+            $path = $request->file('proof')->store('disbursement_proof', 'public');
+    $url = asset("https://ta.sunnysideup.my.id/storage/app/public/{$path}");
+            $loan->disbursement_proof = $url;
         }
 
         $loan->save();
